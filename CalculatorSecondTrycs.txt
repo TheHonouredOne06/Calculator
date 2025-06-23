@@ -1,0 +1,116 @@
+MainPage.xaml.cs
+
+namespace CalculatorSecondTry;
+
+public partial class MainPage : ContentPage
+{
+    string currentEntry = "";
+    double currentResult = 0;
+    string operation = "";
+    bool isChaining = false;
+
+    public MainPage()
+    {
+        InitializeComponent();
+        NavigationPage.SetHasNavigationBar(this, false);
+    }
+
+   
+    void OnBackspaceClicked(object sender, EventArgs e)
+    {
+        if (!string.IsNullOrEmpty(currentEntry))
+        {
+            currentEntry = currentEntry.Substring(0, currentEntry.Length - 1);
+            ResultLabel.Text = string.IsNullOrEmpty(currentEntry) ? "0" : currentEntry;
+        }
+    }
+
+
+    void OnNumberClicked(object sender, EventArgs e)
+    {
+        var button = (Button)sender;
+        currentEntry += button.Text;
+        ResultLabel.Text = currentEntry;
+    }
+
+    public void OnSquareRootClicked(object sender, EventArgs e)
+    {
+        if (double.TryParse(currentEntry, out double number))
+        {
+            if (number >= 0)
+            {
+                double result = Math.Sqrt(number);
+                ResultLabel.Text = result.ToString();
+                currentEntry = result.ToString();
+            }
+            else
+            {
+                ResultLabel.Text = "Invalid Input";
+                currentEntry = "";
+            }
+        }
+    }
+
+
+    void OnOperatorClicked(object sender, EventArgs e)
+    {
+        var button = (Button)sender;
+        string newOp = button.Text;
+
+        if (double.TryParse(currentEntry, out double number))
+        {
+            if (!isChaining)
+            {
+                currentResult = number;
+                isChaining = true;
+            }
+            else
+            {
+                currentResult = PerformOperation(currentResult, number, operation);
+            }
+
+            operation = newOp;
+            currentEntry = "";
+            ResultLabel.Text = currentResult.ToString();
+            ExpressionLabel.Text = $"{currentResult} {operation}";
+        }
+    }
+
+    void OnCalculateClicked(object sender, EventArgs e)
+    {
+        if (double.TryParse(currentEntry, out double secondNumber))
+        {
+            double result = PerformOperation(currentResult, secondNumber, operation);
+
+            ResultLabel.Text = result.ToString();
+            ExpressionLabel.Text = $"{currentResult} {operation} {secondNumber} =";
+            currentEntry = result.ToString();
+            currentResult = result;
+            isChaining = false;
+        }
+    }
+
+    void OnClearClicked(object sender, EventArgs e)
+    {
+        currentEntry = "";
+        currentResult = 0;
+        operation = "";
+        isChaining = false;
+        ResultLabel.Text = "0";
+        ExpressionLabel.Text = "";
+    }
+
+    double PerformOperation(double a, double b, string op)
+    {
+        return op switch
+        {
+            "+" => a + b,
+            "−" => a - b,
+            "×" => a * b,
+            "÷" => b != 0 ? a / b : 0,
+            "%" => a % b,
+            _ => b,
+            
+        };
+    }
+}
